@@ -28,7 +28,6 @@ def simulate(na_rets, lf_alloc):
 
     # Estimate portfolio returns
     na_portrets = np.sum(na_rets * lf_alloc, axis=1)
-
     cum_ret = na_portrets[-1]
     tsu.returnize0(na_portrets)
 
@@ -44,16 +43,11 @@ def simulate(na_rets, lf_alloc):
 def main():
     '''Main Function'''
     # List of symbols
-    #ls_symbols = ['AAPL', 'GOOG', 'IBM', 'MSFT']
+    ls_symbols = ['AAPL', 'GOOG', 'IBM', 'MSFT'] 
 
     # Start and End date of the charts
-    dt_start = dt.datetime(2011, 1, 1)
-    dt_end = dt.datetime(2011, 12, 31)
-
-    ls_symbols = ['AAPL', 'GLD', 'GOOG', 'XOM']
-
-    dt_start = dt.datetime(2011, 1, 1)
-    dt_end = dt.datetime(2011, 12, 31)
+    dt_start = dt.datetime(2010, 1, 1)
+    dt_end = dt.datetime(2010, 12, 31)
 
     # We need closing prices so the timestamp should be hours=16.
     dt_timeofday = dt.timedelta(hours=16)
@@ -89,24 +83,21 @@ def main():
     final_cum_ret = -1000
     best_portfolio = lf_alloc
 
-
-    final_stddev, final_daily_ret, max_sharpe, final_cum_ret = simulate(na_rets, [0.4, 0.4, 0, 0.2])
-
-    # for i in range(0, 101, 10):
-    #     left_after_i = 101 - i
-    #     for j in range(0, left_after_i, 10):
-    #         left_after_j = 101 - i - j
-    #         for k in range(0, left_after_j, 10):
-    #             left_after_k = 100 - i - j - k
-    #             lf_alloc = [i, j, k, left_after_k]
-    #             lf_alloc = [x * 0.01 for x in lf_alloc]
-    #             stddev, daily_ret, sharpe, cum_ret = simulate(na_rets, lf_alloc)
-    #             if sharpe > max_sharpe:
-    #                 max_sharpe = sharpe
-    #                 final_stddev = stddev
-    #                 final_cum_ret = cum_ret
-    #                 final_daily_ret = daily_ret
-    #                 best_portfolio = lf_alloc
+    for i in range(0, 101, 10):
+        left_after_i = 101 - i
+        for j in range(0, left_after_i, 10):
+            left_after_j = 101 - i - j
+            for k in range(0, left_after_j, 10):
+                left_after_k = 100 - i - j - k
+                lf_alloc = [i, j, k, left_after_k]
+                lf_alloc = [x * 0.01 for x in lf_alloc]
+                stddev, daily_ret, sharpe, cum_ret = simulate(na_rets, lf_alloc)
+                if sharpe > max_sharpe:
+                    max_sharpe = sharpe
+                    final_stddev = stddev
+                    final_cum_ret = cum_ret
+                    final_daily_ret = daily_ret
+                    best_portfolio = lf_alloc
 
     print "Symbols : ", ls_symbols
     print "Best Portfolio : ", best_portfolio

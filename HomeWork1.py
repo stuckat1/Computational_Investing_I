@@ -38,7 +38,8 @@ def simulate( na_rets, allocs) :
 
     return daily_ret, stddev_ret, cum_ret, sharpe_ratio
 
-# Inelegant brute force search for global optimal portfolio
+# Inelegant brute force search for an optimal portfolio
+# on a grid.
 def optimize( na_rets) :
 
     best_sharpe = 0
@@ -76,9 +77,9 @@ def main():
     dt_end = dt.datetime(2011,12,31)
 
     # Quiz - Question 2
-    syms = ['BRCM', 'TXN', 'AMD', 'ADI']
-    dt_start = dt.datetime(2011,1,1)
-    dt_end = dt.datetime(2011,12,31)
+    #syms = ['BRCM', 'TXN', 'AMD', 'ADI']
+    #dt_start = dt.datetime(2011,1,1)
+    #dt_end = dt.datetime(2011,12,31)
 
     # Creating an object of the dataaccess class with Yahoo as the source.
     #c_dataobj = da.DataAccess('Yahoo', cachestalltime=0)
@@ -99,7 +100,7 @@ def main():
     # Copying close price into separate dataframe to find rets
     df_rets = d_data['close'].copy()
 
-    # Forward and back fill the data.
+    # Forward and then back fill the data to get rid of NAs
     df_rets = df_rets.fillna(method='ffill')
     df_rets = df_rets.fillna(method='bfill')
 
@@ -111,7 +112,7 @@ def main():
 
     sharpe, port = optimize(na_rets)
     print "Best Sharpe ratio is ", sharpe
-    print "Portfolio = ", port
+    print "Portfolio weights are ", port
 
 if __name__ == '__main__':
     main()
