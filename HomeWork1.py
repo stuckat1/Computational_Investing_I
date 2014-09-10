@@ -1,13 +1,13 @@
 '''
 
-Computational Investing 1
+Computational Investing Part I - Georgia Tech
 Home Work #1
 
-Ke-Wei Ma
-keweima at gmail.com
+@author: Ke-Wei Ma
+@contact: keweima at gmail.com
+@summary: Assess and optimize a portfolio
 
 '''
-
 
 # QSTK Imports
 import QSTK.qstkutil.qsdateutil as du
