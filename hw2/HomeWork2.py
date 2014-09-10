@@ -22,7 +22,7 @@ import numpy as np
 import math
 import copy
 
-def find_events(ls_symbols, d_data):
+def find_events(ls_symbols, d_data, barrier):
 
     ''' Finding the event dataframe '''
     df_close = d_data['actual_close']
@@ -43,14 +43,14 @@ def find_events(ls_symbols, d_data):
             price_yest = df_close[s_sym].ix[ldt_timestamps[i - 1]]
 
             # Event is defined as stock closing price crossing 5 bucks.
-            if price_today < 5.0 and price_yest >= 5.0 :
+            if price_today < barrier and price_yest >= barrier :
                 df_events[s_sym].ix[ldt_timestamps[i]] = 1
 
     return df_events
 
 
 
-def doit(SPfname, pdfname) :
+def doit(SPfname, pdfname, barrier) :
 
     dt_start = dt.datetime(2008, 1,1)
     dt_end = dt.datetime(2009, 12, 31)
@@ -72,12 +72,15 @@ def doit(SPfname, pdfname) :
         d_data[s_key] = d_data[s_key].fillna(method='bfill')
         d_data[s_key] = d_data[s_key].fillna(1.0)
 
-    df_events = find_events(ls_symbols, d_data)
+    df_events = find_events(ls_symbols, d_data, barrier)
     print "Creating Event Study"
     ep.eventprofiler(df_events, d_data, i_lookback=20, i_lookforward=20,
                 s_filename=pdfname, b_market_neutral=True, b_errorbars=True,
                 s_market_sym='SPY')
 
 if __name__ == '__main__':
-    doit('sp5002008','HW2_EventStudy2008.pdf')
-    doit('sp5002012','HW2_EventStudy2012.pdf')
+    doit('sp5002008','EventStudy2008.pdf', 5.0)
+    doit('sp5002012','EventStudy2012.pdf', 5.0)
+
+    doit('sp5002008','Q2_EventStudy2008.pdf', 9.0)
+    doit('sp5002012','Q3_EventStudy2012.pdf', 10.0)
