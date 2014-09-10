@@ -4,7 +4,7 @@ Computational Investing 1
 Home Work #1
 
 Ke-Wei Ma
-keweima@gmail.com
+keweima at gmail.com
 
 '''
 
