@@ -7,28 +7,23 @@ Home Work #3
 @contact: keweima at gmail.com
 @summary: Market Simulation Assignment
 
-This implementation is based on the suggestions provided by instructor.
+This implementation is based on the suggestions provided by
+instructor.
 '''
 
 # QSTK Imports
 import QSTK.qstkutil.qsdateutil as du
-#import QSTK.qstkutil.tsutil as tsu
 import QSTK.qstkutil.DataAccess as da
-#import QSTK.qstkstudy.EventProfiler as ep
 
 # Third Party Imports
-#import datetime as dt
-#import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-#import math
-#import copy
 import sys
 import csv
 import datetime as dt
 
-# Read in orders file in CSV file format.  Return symbols and
-# list of transaction dates
+# Read in orders file in CSV file format.  Return symbols and list of
+# transaction dates
 def read_orders( file_name) :
 
     symbols = set()     # uniqueness
@@ -39,8 +34,9 @@ def read_orders( file_name) :
         reader = csv.reader( csvfile, delimiter=',')
         for row in reader:
 
-            s = row[3].strip().upper()  # Remove spaces, don't do it for numbers
-                                        # because conversion does it auto-magically
+            s = row[3].strip().upper()  # Remove spaces, don't do it for
+                                        # numbers because numeric conversion
+                                        # does it auto-magically
             if s not in symbols:
                 symbols.add( s)
             date = dt.datetime( int(row[0]), int(row[1]), int(row[2]))
@@ -52,11 +48,12 @@ def read_orders( file_name) :
 
     return symbols, dates
 
-# From Yahoo finance, get close prices for 'symbols' for
+# From Yahoo finance, get close prices for 'symbols' for the
 # 'dates' given.
 def read_market_data( symbols, dates):
 
-    time_stamps = du.getNYSEdays( dates[0], dates[-1] + dt.timedelta(days=1), dt.timedelta(hours=16))
+    time_stamps = du.getNYSEdays( dates[0], dates[-1] + dt.timedelta(days=1),
+                                  dt.timedelta(hours=16))
 
     dataobj = da.DataAccess('Yahoo')
     close = dataobj.get_data( time_stamps, symbols, "close")
@@ -65,9 +62,9 @@ def read_market_data( symbols, dates):
 
     return close, time_stamps
 
-# Reread the order file but this time construct a table that
-# indicates the number of shares held.  We now know the start and
-# end date so we can pre-construct our matrices.
+# Reread the order file but this time construct a table that indicates the
+# number of shares held.  We now know the start and end date so we can
+# pre-construct our matrices.
 def compute_trade_matrix( file_name, symbols, time_stamps, price ):
 
     shares = np.zeros((len(time_stamps), len(symbols)))
@@ -96,39 +93,45 @@ def compute_trade_matrix( file_name, symbols, time_stamps, price ):
 
     return shares
 
+# Add cash position to trades matrix.
 def compute_cash( initial_cash, trades, prices) :
 
-    #print "\n\ntrades=", trades
-    #print "\n\nprices=", prices
-
-    # Multiply trades by prices to get cost per stock per day
-    # Sum by date so we know the total equity value
+    # Multiply trades by prices to get cost per stock for each day.  Subtract
+    # that amount out of cash.
     cost = -trades.mul( prices, axis=0).sum(axis=1)
 
+    # Now, add the initial cash position to first date.
     cost[0]+= initial_cash
-    print "\n\ncost = ",cost
 
-    # Now, shove this column back into share matrix
+    # Now, shove this column into trades matrix
     trades['_CASH'] = cost
-    trades = trades.cumsum()
 
-    print "\n\nMatrix = ", trades
+    # Now we compute the cumulative sum of each stock and cash position
+    # forward through time creating an asset holding for each date
+    trades = trades.cumsum()
 
     return trades
 
+# Create a single timeseries representing the portfolio total value.
 def compute_fund_value( holdings, prices):
 
-    # Add 1 to the prices so we can do matrix math easily
-    #
+    # Add 1 to the closing prices for cash so we can do simple matrix math
     prices['_CASH'] = 1
     ts_fund = pd.TimeSeries(0.0, prices.index)
 
     for row_index, row in holdings.iterrows():
-        print row.values.astype(float)
-        print prices.ix[row_index].values
         ts_fund[row_index] += np.dot(row.values.astype(float), prices.ix[row_index].values)
 
     return ts_fund
+
+def write_fund( fund, file_name):
+
+    writer = csv.writer( open(file_name,'wb'), delimiter=',')
+
+    for row in fund.index:
+        writer.writerow( [ str(row.year), str(row.month), str(row.day),
+                           str(fund[row])])
+
 
 if __name__ == '__main__':
 
@@ -136,29 +139,30 @@ if __name__ == '__main__':
     orders_file_name = sys.argv[2]
     values_file_name = sys.argv[3]
 
-    print "Initial cash =" , init_cash\
+    #print "initial cash =" , init_cash\
 
     symbols, dates = read_orders( orders_file_name)
 
     symbols = list(symbols)     # convert set to list
 
-    print "symbols = ", symbols
-    #print "dates = ", dates
+    #print "symbols = ", symbols
 
     prices, dates = read_market_data(symbols, dates)
 
-    print "close = ", prices
-    print "dates = ", dates
+    #print "close = ", prices
+    #print "dates = ", dates
 
     trade_matrix = compute_trade_matrix( orders_file_name, symbols, dates, prices)
-    print "\n\nTrade Marix =\n", trade_matrix
+    #print "\n\ntrade matrix =\n", trade_matrix
 
-    cash_matrix = compute_cash( init_cash, trade_matrix, prices)
+    holding_matrix = compute_cash( init_cash, trade_matrix, prices)
 
-    print "\n\ncash_matrix= \n", cash_matrix
-    print "\n\nprice matrix= \n", prices
+    #print "\n\nholding matrix= \n", holding_matrix
+    #print "\n\nprices = \n", prices
 
 
-    fund = compute_fund_value( cash_matrix, prices)
+    fund = compute_fund_value( holding_matrix, prices)
 
     print "\n\nfund value = \n", fund
+
+    write_fund( fund, values_file_name)
